@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using VebTechTest.EFCore;
+using VebTechTest.Interfaces;
+using VebTechTest.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<EFDataContext>(
-    options => options.UseNpgsql(builder.Configuration.GetConnectionString("Ef_Postres_Db"))
+    options => options.UseNpgsql(builder.Configuration.GetConnectionString("ConnectionStr"))
     );
 builder.Services.AddControllers();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

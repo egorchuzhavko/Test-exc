@@ -11,8 +11,8 @@ using VebTechTest.EFCore;
 namespace VebTechTest.Migrations
 {
     [DbContext(typeof(EFDataContext))]
-    [Migration("20231008121353_CreateDb")]
-    partial class CreateDb
+    [Migration("20231008160941_CreateDB")]
+    partial class CreateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

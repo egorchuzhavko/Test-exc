@@ -1,6 +1,7 @@
 ﻿using VebTechTest.EFCore;
 using VebTechTest.Models;
 using VebTechTest.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace VebTechTest.Repository {
     public class UserRepository : IUserRepository {
@@ -11,15 +12,15 @@ namespace VebTechTest.Repository {
         }
 
         public ICollection<User> GetUsers() {
-            return _context.Users.OrderBy(x => x.Id).ToList();
+            return _context.Users.Include(x => x.UserRoles).ThenInclude(ur => ur.Role).ToList();
         }
 
         public User GetUser(int id) {
-            return _context.Users.Where(p => p.Id == id).FirstOrDefault();
+            return _context.Users.Include(x => x.UserRoles).ThenInclude(ur => ur.Role).Where(p => p.Id == id).FirstOrDefault();
         }
 
         public User GetUser(string email) {
-            return _context.Users.Where(p => p.Email == email).FirstOrDefault();
+            return _context.Users.Include(x => x.UserRoles).ThenInclude(ur => ur.Role).Where(p => p.Email == email).FirstOrDefault();
         }
 
         public bool UserExists(int id) {

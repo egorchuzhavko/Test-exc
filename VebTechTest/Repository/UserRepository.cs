@@ -18,6 +18,10 @@ namespace VebTechTest.Repository {
             return _context.Users.Where(p => p.Id == id).FirstOrDefault();
         }
 
+        public User GetUser(string email) {
+            return _context.Users.Where(p => p.Email == email).FirstOrDefault();
+        }
+
         public bool UserExists(int id) {
             return _context.Users.Any(u => u.Id == id);
         }

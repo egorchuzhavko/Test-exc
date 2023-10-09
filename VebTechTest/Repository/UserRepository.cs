@@ -2,6 +2,7 @@
 using VebTechTest.Models;
 using VebTechTest.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using VebTechTest.DTO;
 
 namespace VebTechTest.Repository {
     public class UserRepository : IUserRepository {
@@ -15,12 +16,37 @@ namespace VebTechTest.Repository {
             return _context.Users.Include(x => x.UserRoles).ThenInclude(ur => ur.Role).ToList();
         }
 
+        public ICollection<GetUserDTO> GetUsersDto() {
+            var usersWithRoles = _context.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .GroupBy(u => new {
+                    u.Id,
+                    u.Name,
+                    u.Age,
+                    u.Email
+                })
+                .Select(g => new GetUserDTO {
+                    Id = g.Key.Id,
+                    Name = g.Key.Name,
+                    Age = g.Key.Age,
+                    Email = g.Key.Email,
+                    Roles = g.SelectMany(ur => ur.UserRoles.Select(role => role.Role.Type)).ToList()
+                })
+                .ToList();
+            return usersWithRoles;
+        }
+
+        public GetUserDTO GetUserDto(int id) {
+            return GetUsersDto().Where(u => u.Id == id).FirstOrDefault();
+        }
+
         public User GetUser(int id) {
-            return _context.Users.Include(x => x.UserRoles).ThenInclude(ur => ur.Role).Where(p => p.Id == id).FirstOrDefault();
+            return _context.Users.Where(p => p.Id == id).FirstOrDefault();
         }
 
         public User GetUser(string email) {
-            return _context.Users.Include(x => x.UserRoles).ThenInclude(ur => ur.Role).Where(p => p.Email == email).FirstOrDefault();
+            return _context.Users.Where(p => p.Email == email).FirstOrDefault();
         }
 
         public bool UserExists(int id) {

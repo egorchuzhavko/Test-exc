@@ -24,7 +24,7 @@ namespace VebTechTest.Controllers {
         [HttpGet]
         [ProducesResponseType(200,Type = typeof(IEnumerable<User>))]
         public IActionResult GetUsers() {
-            var users = _userRepository.GetUsers();
+            var users = _userRepository.GetUsersDto();
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -38,13 +38,13 @@ namespace VebTechTest.Controllers {
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{UserId}")]
-        [ProducesResponseType(200,Type=typeof(User))]
+        [ProducesResponseType(200,Type=typeof(GetUserDTO))]
         [ProducesResponseType(400)]
-        public IActionResult GetUser(int id) {
-            if (!_userRepository.UserExists(id))
+        public IActionResult GetUser(int UserId) {
+            if (!_userRepository.UserExists(UserId))
                 return NotFound();
 
-            var user = _userRepository.GetUser(id);
+            var user = _userRepository.GetUserDto(UserId);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -65,6 +65,21 @@ namespace VebTechTest.Controllers {
                 return BadRequest(ModelState);
 
             var checkuser = _userRepository.GetUsers().Where(u => u.Email == user.Email).FirstOrDefault();
+            if (user.Name == "") {
+                ModelState.AddModelError("", "Empty name");
+                return StatusCode(422, ModelState);
+            }
+
+            if (user.Age <= 0) {
+                ModelState.AddModelError("", "Wrong age");
+                return StatusCode(422, ModelState);
+            }
+
+            if (user.Email == "") {
+                ModelState.AddModelError("", "Empty email");
+                return StatusCode(422, ModelState);
+            }
+
             if (checkuser != null) {
                 ModelState.AddModelError("", "User with that email already exists");
                 return StatusCode(422, ModelState);
@@ -105,20 +120,49 @@ namespace VebTechTest.Controllers {
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateUser(int userId, [FromBody] User user) {
+        public IActionResult UpdateUser(int userId, [FromBody] UserDTO user) {
+            if (userId! > 0) {
+                ModelState.AddModelError("", "Wrong user id");
+                return StatusCode(400, ModelState);
+            }
+
             if (user == null)
                 return BadRequest(ModelState);
 
-            if (userId != user.Id)
-                return BadRequest(ModelState);
+            if (user.Name == "") {
+                ModelState.AddModelError("", "Empty name");
+                return StatusCode(422, ModelState);
+            }
 
-            if (!_userRepository.UserExists(userId))
-                return NotFound();
+            if (user.Age <= 0) {
+                ModelState.AddModelError("", "Wrong age");
+                return StatusCode(422, ModelState);
+            }
+
+            if (user.Email == "") {
+                ModelState.AddModelError("", "Empty email");
+                return StatusCode(422, ModelState);
+            }
+
+            var baseuser = _userRepository.GetUser(userId);
+            if(baseuser != null) {
+                return BadRequest(ModelState);
+            }
+
+            if(user.Email != baseuser.Email) {
+                if(_userRepository.GetUsers().Where(u => u.Email == user.Email).FirstOrDefault()!=null) {
+                    ModelState.AddModelError("", "User with that email already exists");
+                    return StatusCode(422, ModelState);
+                }
+            }
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_userRepository.UpdateUser(user)) {
+            baseuser.Email = user.Email;
+            baseuser.Age = user.Age;
+            baseuser.Name = user.Name;
+            if (!_userRepository.UpdateUser(baseuser)) {
                 ModelState.AddModelError("", "Something went wrong while we updated user");
                 return StatusCode(500, ModelState);
             }
@@ -138,14 +182,14 @@ namespace VebTechTest.Controllers {
         [ProducesResponseType(404)]
         [ProducesResponseType(422)]
         [ProducesResponseType(500)]
-        public IActionResult AddUserRole(int userId, int roleId) {
-            if (!_userRepository.UserExists(userId))
+        public IActionResult AddUserRole(int UserId, int roleId) {
+            if (!_userRepository.UserExists(UserId))
                 return NotFound();
 
             if (!_roleRepository.RoleExists(roleId))
                 return NotFound();
 
-            var checkuserrole = _userroleRepository.GetUsersRoles().Where(ur => ur.UserId == userId & ur.RoleId == roleId).FirstOrDefault();
+            var checkuserrole = _userroleRepository.GetUsersRoles().Where(ur => ur.UserId == UserId & ur.RoleId == roleId).FirstOrDefault();
 
             if (checkuserrole != null) {
                 ModelState.AddModelError("", "User already has this role");
@@ -155,7 +199,7 @@ namespace VebTechTest.Controllers {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_userroleRepository.AddRole(new UserRole { UserId = userId, RoleId = roleId })) {
+            if (!_userroleRepository.AddRole(new UserRole { UserId = UserId, RoleId = roleId })) {
                 ModelState.AddModelError("", "Something went wrong while we added new role to user");
                 return StatusCode(500, ModelState);
             }

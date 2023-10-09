@@ -11,8 +11,8 @@ using VebTechTest.EFCore;
 namespace VebTechTest.Migrations
 {
     [DbContext(typeof(EFDataContext))]
-    [Migration("20231008160941_CreateDB")]
-    partial class CreateDB
+    [Migration("20231009104228_CreateDb")]
+    partial class CreateDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -82,13 +82,13 @@ namespace VebTechTest.Migrations
 
             modelBuilder.Entity("VebTechTest.Models.UserRole", b =>
                 {
-                    b.HasOne("VebTechTest.Models.User", "User")
+                    b.HasOne("VebTechTest.Models.Role", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VebTechTest.Models.Role", "Role")
+                    b.HasOne("VebTechTest.Models.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

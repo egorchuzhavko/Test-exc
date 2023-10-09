@@ -79,13 +79,13 @@ namespace VebTechTest.Migrations
 
             modelBuilder.Entity("VebTechTest.Models.UserRole", b =>
                 {
-                    b.HasOne("VebTechTest.Models.User", "User")
+                    b.HasOne("VebTechTest.Models.Role", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VebTechTest.Models.Role", "Role")
+                    b.HasOne("VebTechTest.Models.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -22,14 +22,68 @@ namespace VebTechTest.Controllers {
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(200,Type = typeof(IEnumerable<User>))]
-        public IActionResult GetUsers() {
+        [ProducesResponseType(200,Type = typeof(IEnumerable<GetUserDTO>))]
+        public IActionResult GetUsers(int page = 1, int pagesize = 10, string? sortby =null, string? sorttype = null, 
+            string? filterby = null, string? filtertext = null) {
             var users = _userRepository.GetUsersDto();
+
+            if (users.Count == 0)
+                return NotFound();
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(users);
+            if ((sorttype != "asc" & sorttype != "desc" & sorttype != null)
+                || (sortby != "id" & sortby != "name" & sortby != "age" & sortby != "email" & sortby != "role" & sortby != null)
+                || (filterby != "id" & filterby != "name" & filterby != "age" & filterby != "email" & filterby != "role" & filterby != null))
+                return BadRequest();
+
+            if (sortby!=null)
+                switch (sortby) {
+                    case "id":
+                        users = sorttype == "asc" ? users.OrderBy(x => x.Id).ToList() : users.OrderByDescending(x => x.Id).ToList();
+                        break;
+                    case "name":
+                        users = sorttype == "asc" ? users.OrderBy(x => x.Name).ToList() : users.OrderByDescending(x => x.Name).ToList();
+                        break;
+                    case "age":
+                        users = sorttype == "asc" ? users.OrderBy(x => x.Age).ToList() : users.OrderByDescending(x => x.Age).ToList();
+                        break;
+                    case "email":
+                        users = sorttype == "asc" ? users.OrderBy(x => x.Email).ToList() : users.OrderByDescending(x => x.Email).ToList();
+                        break;
+                    case "role":
+                        users = sorttype == "asc" ? users.OrderBy(x => x.Roles.Count).ToList() : users.OrderByDescending(x => x.Roles.Count).ToList();
+                        break;
+                    default:
+                        break;
+                }
+
+            if(filterby!= null)
+                switch (filterby) {
+                    case "id":
+                        users = users.Where(x => x.Id==Convert.ToInt32(filtertext)).ToList();
+                        break;
+                    case "name":
+                        users = users.Where(x => x.Name.Contains(filtertext)).ToList();
+                        break;
+                    case "age":
+                        users = users.Where(x => x.Age == Convert.ToInt32(filtertext)).ToList();
+                        break;
+                    case "email":
+                        users = users.Where(x => x.Email.Contains(filtertext)).ToList();
+                        break;
+                    case "role":
+                        users = users.Where(x => x.Roles.Contains(filtertext)).ToList();
+                        break;
+                    default:
+                        break;
+                }
+
+            var query = users.AsQueryable();
+            var usersresult = query.Skip((page - 1) * pagesize).Take(pagesize).ToList();
+
+            return Ok(usersresult);
         }
 
         /// <summary>

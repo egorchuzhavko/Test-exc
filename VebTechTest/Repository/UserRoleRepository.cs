@@ -6,12 +6,12 @@ namespace VebTechTest.Repository {
     public class UserRoleRepository : IUserRoleRepository {
         private readonly EFDataContext _context;
 
-        public ICollection<UserRole> GetUsersRoles() {
-            return _context.UserRoles.ToList();
-        }
-
         public UserRoleRepository(EFDataContext context) {
             this._context = context;
+        }
+
+        public ICollection<UserRole> GetUsersRoles() {
+            return _context.UserRoles.ToList();
         }
 
         public bool UserRoleExists(int userid, int roleid) {

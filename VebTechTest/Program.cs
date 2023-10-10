@@ -1,9 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using VebTechTest;
 using VebTechTest.EFCore;
+using Microsoft.IdentityModel.Tokens;
 using VebTechTest.Interfaces;
 using VebTechTest.Repository;
+using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +22,32 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddTransient<RoleFiller>();
+builder.Services.AddSwaggerGen();
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Logging.AddSerilog(logger);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(
+    c => {
+        c.SwaggerDoc("v1", new OpenApiInfo {
+            Title = "API users VebTech Test",
+            Version = "v1",
+            Description = "Entity framework + Postgresql (connection string in appsettings.json in project)\n\n"+
+            "Before first use api you should make few steps:\n1) Open project in VS;\n" +
+            "2) Open package manager console;\n3) Write 'Update-Database'\n" +
+            "4) Then open terminal;\n5) Write in terminal 'cd vebTechTest';\n" +
+            "6) Then write in terminal 'dotnet run filldata';\n" +
+            "7) Press the keyboard shortcut ctrl+c.\n\n" +
+            "This is necessary to populate the database with data."
+        });
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    });
 
 var app = builder.Build();
 
@@ -37,10 +64,13 @@ if (args.Length == 1 && args[0].ToLower() == "filldata")
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c=> {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API users VebTech Test");
+    });
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

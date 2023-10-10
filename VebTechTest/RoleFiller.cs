@@ -7,7 +7,6 @@ namespace VebTechTest {
         public RoleFiller(EFDataContext context) {
             this.dataContext = context;
         }
-
         public void FillRoles() {
             if(!dataContext.Roles.Any()) {
                 var listroles = new List<Role>() {

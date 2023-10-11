@@ -9,6 +9,9 @@ using VebTechTest.Interfaces;
 using VebTechTest.Repository;
 using System.Text;
 using Serilog;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,18 +39,58 @@ builder.Services.AddSwaggerGen(
         c.SwaggerDoc("v1", new OpenApiInfo {
             Title = "API users VebTech Test",
             Version = "v1",
-            Description = "Entity framework + Postgresql (connection string in appsettings.json in project)\n\n"+
+            Description = "Entity framework + Postgresql (connection string in appsettings.json in project)\n\n" +
             "Before first use api you should make few steps:\n1) Open project in VS;\n" +
             "2) Open package manager console;\n3) Write 'Update-Database'\n" +
             "4) Then open terminal;\n5) Write in terminal 'cd vebTechTest';\n" +
             "6) Then write in terminal 'dotnet run filldata';\n" +
             "7) Press the keyboard shortcut ctrl+c.\n\n" +
-            "This is necessary to populate the database with data."
+            "This is necessary to populate the database with data.\n\n"+
+            "To Get JWT token you have to make post request 'LoginJwt' where you have to write " + "" +
+            "In name 'Log' and in password 'Pas'. Then you have to get your token in write him in authorization panel."
         });
         var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         c.IncludeXmlComments(xmlPath);
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
+            In = ParameterLocation.Header,
+            Description = "Please enter a valid token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "Bearer"
+        });
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }});
     });
+builder.Services.AddAuthentication(x => {
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(x => {
+    x.TokenValidationParameters = new TokenValidationParameters {
+        ValidIssuer = "UserTest",
+        ValidAudience = "http://localhost:51398",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("shYCEfQDeKhAkLKmnigpPDDAkD__FdsFbDg")),
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true
+    };
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

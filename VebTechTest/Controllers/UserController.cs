@@ -5,6 +5,7 @@ using VebTechTest.DTO;
 using Microsoft.AspNetCore.Authorization;
 
 namespace VebTechTest.Controllers {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : Controller {

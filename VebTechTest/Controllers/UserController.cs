@@ -113,7 +113,6 @@ namespace VebTechTest.Controllers {
         /// </summary>
         /// <param name="UserId"></param>
         /// <returns></returns>
-        
         [HttpGet("{UserId}")]
         [ProducesResponseType(200,Type=typeof(GetUserDTO))]
         [ProducesResponseType(400)]
@@ -219,21 +218,21 @@ namespace VebTechTest.Controllers {
         [ProducesResponseType(422)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UserDTO user) {
+        public async Task<IActionResult> UpdateUser(int UserId, [FromBody] UserDTO user) {
             _logger.LogInformation("Update user executing...");
-            if (userId! > 0) {
+            if (!ModelState.IsValid) {
+                _logger.LogInformation("Update user bad request model not valid");
+                return BadRequest(ModelState);
+            }
+
+            if (UserId <= 0) {
                 _logger.LogInformation("Update user not found");
                 ModelState.AddModelError("", "User not found");
                 return StatusCode(404, ModelState);
             }
 
-            if (!ModelState.IsValid) {
-                _logger.LogInformation("Update user bad request");
-                return BadRequest(ModelState);
-            }
-
             if (user == null) {
-                _logger.LogInformation("Update user bad request");
+                _logger.LogInformation("Update user bad request user == null");
                 return BadRequest(ModelState);
             }
 
@@ -255,10 +254,10 @@ namespace VebTechTest.Controllers {
                 return StatusCode(422, ModelState);
             }
 
-            var baseuser = _userRepository.GetUser(userId);
-            if(baseuser != null) {
-                _logger.LogInformation("Update user bad request");
-                return BadRequest(ModelState);
+            var baseuser = _userRepository.GetUser(UserId);
+            if(baseuser == null) {
+                _logger.LogInformation("Update user user not found");
+                return NotFound(ModelState);
             }
 
             if(user.Email != baseuser.Email) {

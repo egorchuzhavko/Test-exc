@@ -20,9 +20,7 @@ namespace VebTechTest.Controllers {
                 return BadRequest("Username and/or Password not specified");
 
             if (loginDTO.Name.Equals("Log") && loginDTO.Password.Equals("Pas")) {
-                Console.WriteLine("+");
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("shYCEfQDeKhAkLKmnigpPDDAkD__FdsFbDg"));
-                Console.WriteLine("++");
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
                 var jwtSecurityToken = new JwtSecurityToken(
                     issuer: "UserTest",
@@ -31,7 +29,6 @@ namespace VebTechTest.Controllers {
                     expires: DateTime.Now.AddHours(1),
                     signingCredentials: signinCredentials
                 );
-                Console.WriteLine("+++");
                 return Ok(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken));
             }
             return Unauthorized();

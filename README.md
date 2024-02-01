@@ -1,4 +1,4 @@
-# VebTechTest
+# Test exc
 Entity framework + Postgresql + jwt token + serilog (logs are created in the logs folder in the root folder of the project) 
 (connection string in appsettings.json in project)
 
